@@ -5,6 +5,8 @@ param(
     [string]$Mode = 'Import',
     [ValidatePattern('^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$')]
     [string]$EvidenceName = 'ghidra-reproduction',
+    [ValidateSet('WadEvidence.java', 'MapEvidence.java')]
+    [string]$ScriptName = 'WadEvidence.java',
     [ValidateCount(0, 20)]
     [ValidatePattern('^[0-9A-Fa-f]{8,16}$')]
     [string[]]$FunctionAddress = @()
@@ -60,7 +62,7 @@ if ($Mode -eq 'Import') {
 } else {
     $headlessArguments += @('-process', 'chocolate-doom.exe', '-noanalysis')
 }
-$headlessArguments += @('-scriptPath', $PSScriptRoot, '-postScript', 'WadEvidence.java', $outputDirectory)
+$headlessArguments += @('-scriptPath', $PSScriptRoot, '-postScript', $ScriptName, $outputDirectory)
 $headlessArguments += $FunctionAddress
 $headlessArguments += @(
     '-log', (Join-Path $outputDirectory 'analysis.log'),

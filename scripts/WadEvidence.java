@@ -41,6 +41,10 @@ public class WadEvidence extends GhidraScript {
         "W_AddFile", "W_ReadLump", "W_GetNumForName", "IWAD", "PWAD", "lump"
     };
 
+    protected String[] anchorTerms() {
+        return ANCHORS.clone();
+    }
+
     private static class StringHit {
         Address address;
         String value;
@@ -72,6 +76,7 @@ public class WadEvidence extends GhidraScript {
                 + MAX_REQUESTED_FUNCTIONS + " optional exact function-entry addresses.");
         }
         if (currentProgram == null) throw new IllegalStateException("No current program.");
+        String[] terms = anchorTerms();
         List<Function> requestedFunctions = new ArrayList<>();
         for (int i = 1; i < args.length; i++) {
             monitor.checkCancelled();
@@ -85,8 +90,8 @@ public class WadEvidence extends GhidraScript {
         Path output = Paths.get(args[0]).toAbsolutePath().normalize();
         Files.createDirectories(output);
 
-        // Prefer named loader anchors over the much broader word 'lump'. Ties use
-        // addresses, so the bounded selection is reproducible for the same analysis.
+        // Anchor order sets priority tiers: first three, next two, then remaining.
+        // Address ties keep the bounded selection reproducible for the same analysis.
         Comparator<StringHit> order = Comparator
             .comparingInt((StringHit h) -> h.priority).reversed()
             .thenComparing(h -> h.address);
@@ -102,9 +107,9 @@ public class WadEvidence extends GhidraScript {
             String lower = text.toLowerCase(Locale.ROOT);
             List<String> anchors = new ArrayList<>();
             int priority = 0;
-            for (int i = 0; i < ANCHORS.length; i++) {
-                if (lower.contains(ANCHORS[i].toLowerCase(Locale.ROOT))) {
-                    anchors.add(ANCHORS[i]);
+            for (int i = 0; i < terms.length; i++) {
+                if (lower.contains(terms[i].toLowerCase(Locale.ROOT))) {
+                    anchors.add(terms[i]);
                     priority = Math.max(priority, i < 3 ? 3 : i < 5 ? 2 : 1);
                 }
             }
@@ -220,6 +225,7 @@ public class WadEvidence extends GhidraScript {
             metadata.write("executable_sha256\t" + field(currentProgram.getExecutableSHA256()) + "\n");
             metadata.write("language\t" + field(currentProgram.getLanguageID().toString()) + "\n");
             metadata.write("compiler_spec\t" + field(currentProgram.getCompilerSpec().getCompilerSpecID().toString()) + "\n");
+            metadata.write("anchor_terms\t" + field(String.join(",", terms)) + "\n");
             metadata.write("matching_defined_strings\t" + matchingStrings + "\n");
             metadata.write("exported_strings\t" + hits.size() + "\n");
             metadata.write("reference_capped_strings\t" + cappedReferenceStrings + "\n");
