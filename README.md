@@ -4,7 +4,7 @@
 
 WADScope is a reverse engineering project with two connected deliverables: an evidence-based study of how a compiled DOOM engine loads WAD files, and a Python tool that implements the recovered behavior. The planned visual output is an SVG floor plan reconstructed from a level's geometry.
 
-> **Status: project kickoff.** This repository currently contains the project brief and roadmap. The parser, CLI, SVG exporter, automated tests, and binary analysis report have not been implemented yet.
+> **Status: research setup started.** The project brief, roadmap, and [target/environment baseline](docs/research/target.md) are available. The target and sample have been downloaded and hashed. The parser, CLI, SVG exporter, automated tests, and binary analysis report have not been implemented yet.
 
 ## The research question
 
@@ -13,6 +13,13 @@ How does a compiled engine interpret a WAD archive, and which parts of that beha
 The analysis target will be a pinned build of [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom). Demonstration assets will come from [Freedoom](https://github.com/freedoom/freedoom) or small original fixtures.
 
 WAD is an established, documented format, and Chocolate Doom is open source. This project is an independent reconstruction and validation exercise. Its contribution will be the investigation trail, implementation, and reproducible evidence—not a claim to have discovered an unknown format.
+
+## Practical applications
+
+- **Legacy data preservation:** inspect and extract supported WAD resources for archival work or migration into another tool. The approach transfers to other formats, but each new format needs its own investigation and implementation.
+- **Interoperability and modding:** expose archive metadata and geometry without requiring the original engine to perform the inspection, and export maps into a standard SVG representation.
+- **Input validation and robustness:** detect documented structural faults before extraction or rendering. This is a bounded file validator, not a general malware detector or a guarantee that the original engine is safe.
+- **Reproducible software investigation:** connect binary observations to independently tested behavior, producing evidence useful for debugging and compatibility engineering.
 
 ## What the first release will do
 
