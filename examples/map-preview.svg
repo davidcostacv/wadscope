@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="-414.72 -286.72 829.44 573.44" preserveAspectRatio="xMidYMid meet" role="img" style="background:#0b1220" aria-labelledby="map-title map-description">
+  <title id="map-title">WADScope original demo / MAP01</title>
+  <desc id="map-description">MAP01: 46 vertices, 40 linedefs. Cyan: one-sided; amber: two-sided metadata. Floor-plan preview; playability and collision are not verified.</desc>
+  <rect x="-414.72" y="-286.72" width="829.44" height="573.44" fill="#0b1220" />
+  <g fill="none" stroke-linecap="round">
+    <line x1="-384" y1="256" x2="-48" y2="256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-48" y1="256" x2="48" y2="256" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="48" y1="256" x2="384" y2="256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="384" y1="256" x2="384" y2="-256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="384" y1="-256" x2="48" y2="-256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="48" y1="-256" x2="-48" y2="-256" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="-48" y1="-256" x2="-384" y2="-256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-384" y1="-256" x2="-384" y2="256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-128" y1="128" x2="-32" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-32" y1="128" x2="32" y2="128" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="32" y1="128" x2="128" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="128" y1="128" x2="128" y2="32" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="128" y1="32" x2="128" y2="-32" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="128" y1="-32" x2="128" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="128" y1="-128" x2="32" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="32" y1="-128" x2="-32" y2="-128" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="-32" y1="-128" x2="-128" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-128" y1="-128" x2="-128" y2="-32" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-128" y1="-32" x2="-128" y2="32" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="-128" y1="32" x2="-128" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-384" y1="128" x2="-288" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-288" y1="128" x2="-240" y2="128" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="-240" y1="128" x2="-192" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-192" y1="128" x2="-192" y2="256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-384" y1="-128" x2="-288" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-288" y1="-128" x2="-240" y2="-128" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="-240" y1="-128" x2="-192" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-192" y1="-128" x2="-192" y2="-256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="384" y1="128" x2="288" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="288" y1="128" x2="240" y2="128" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="240" y1="128" x2="192" y2="128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="192" y1="128" x2="192" y2="256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="384" y1="-128" x2="288" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="288" y1="-128" x2="240" y2="-128" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="240" y1="-128" x2="192" y2="-128" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="192" y1="-128" x2="192" y2="-256" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-384" y1="0" x2="-288" y2="0" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="-288" y1="0" x2="-240" y2="0" stroke="#fbbf24" stroke-width="1.536" />
+    <line x1="384" y1="0" x2="288" y2="0" stroke="#22d3ee" stroke-width="1.536" />
+    <line x1="288" y1="0" x2="240" y2="0" stroke="#fbbf24" stroke-width="1.536" />
+  </g>
+</svg>

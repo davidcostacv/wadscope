@@ -2,167 +2,92 @@
 
 [![CI](https://github.com/davidcostacv/wadscope/actions/workflows/ci.yml/badge.svg)](https://github.com/davidcostacv/wadscope/actions/workflows/ci.yml)
 
-**From raw bytes to playable worlds: investigating DOOM's WAD loader and building an independent archive inspector.**
+**From bytes and disassembly to visible DOOM map geometry.**
 
-WADScope is a reverse engineering project with two connected deliverables: an evidence-based study of how a compiled DOOM engine loads WAD files, and a Python tool that implements the recovered behavior. The planned visual output is an SVG floor plan reconstructed from a level's geometry.
+WADScope investigates the compiled WAD loader in Chocolate Doom 3.1.1 and builds an independent Python inspector from the recovered structure. Findings connect sample bytes, executable addresses, later source comparisons, and reproducible tests.
 
-> **Status: working archive inspector.** Header/directory research, the parser, CLI, and indexed extraction are implemented. Map decoding, SVG export, and the release demo remain pending. Windows/Linux CI passes on Python 3.11, 3.12, and 3.14.
+**Working development checkpoint:** archive inspection, JSON listing, indexed extraction, bounded classic-map decoding, and SVG export. Windows/Linux CI validates the installed package on Python 3.11, 3.12, and 3.14. The engine-view comparison and release video remain pending.
 
+![Original MAP01 geometry preview](examples/map-preview.svg)
 
-## Try the archive inspector
+*Original demonstration: 46 vertices, 40 segments. Cyan indicates one-sided metadata; amber indicates two-sided metadata. This is a reproducible geometry sample, not a playable game map.*
 
-Tested on Windows and Linux with Python 3.11, 3.12, and 3.14. Local measurements use Python 3.12.14 on Windows. Runtime and tests require no external dependencies, paid API, or LLM tokens. Optional AI assistance can help explain notes; executed tests and binary observations remain the evidence.
+[Archive findings](docs/research/findings.md) · [Map investigation](docs/research/maps.md) · [Reproduction](docs/research/walkthrough.md) · [Performance](docs/performance.md) · [Portfolio notes](docs/portfolio.md)
 
-Run these commands in Windows PowerShell with Python and Git installed:
+## Try it in Windows PowerShell
+
+Install Python and Git, then run:
 
 ```powershell
 git clone https://github.com/davidcostacv/wadscope.git
 Set-Location .\wadscope
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\python.exe -m wadscope --help
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe examples/create_demo.py
+.\.venv\Scripts\python.exe -m wadscope inspect .\local\demo-map.wad --json
+.\.venv\Scripts\python.exe -m wadscope list .\local\demo-map.wad --json
+.\.venv\Scripts\python.exe -m wadscope extract .\local\demo-map.wad --index 2 --output .\local\linedefs.bin --overwrite
+.\.venv\Scripts\python.exe -m wadscope map-svg .\local\demo-map.wad --map-index 0 --output .\local\map.svg --overwrite
 ```
 
-Create a tiny original sample without downloading game content:
+The builder writes an original WAD under ignored `local/` and recreates the committed preview. Opening `local/map.svg` shows the CLI export. The extraction command produces the 560-byte LINEDEFS resource. No commercial game assets are needed.
 
-```powershell
-.\.venv\Scripts\python.exe -c "from pathlib import Path; from tests.fixtures import original_wad; Path('local').mkdir(exist_ok=True); Path('local/example.wad').write_bytes(original_wad())"
-.\.venv\Scripts\python.exe -m wadscope inspect .\local\example.wad --json
-.\.venv\Scripts\python.exe -m wadscope list .\local\example.wad --json
-.\.venv\Scripts\python.exe -m wadscope extract .\local\example.wad --index 1 --output .\local\resource.bin
-```
+Runtime and tests use the Python standard library: no external runtime dependencies, paid API, or LLM tokens. Packaging tools may require a download during installation. Optional AI assistance can help explain findings or review proposed changes; verified bytes and executed experiments remain the evidence.
 
-Inspection returns:
+## Capabilities
 
-```json
-{"signature": "PWAD", "file_size": 70, "directory_offset": 18, "entry_count": 3, "warnings": []}
-```
-
-Entry 1 extracts the four bytes `CDEF`. Indexes distinguish repeated names. Extraction requires an explicit destination and an existing parent directory; archive names never become output paths. Existing files require `--overwrite`, and source aliases are refused. Failed reads preserve existing destinations. Default no-overwrite publication requires filesystem hard-link support and fails explicitly when unavailable.
-
-Policy limits default to 100,000 entries and 64 MiB per selected resource; override with `--max-entries` and `--max-lump-size`. Exit codes are 0 for success, 1 for operational failures, and 2 for argument errors. Directory reads are batched and extraction streams bounded chunks.
-
-[Research findings](docs/research/findings.md), [reproduction walkthrough](docs/research/walkthrough.md), [format policy](docs/format/wad.md), and [measured performance](docs/performance.md) document actual results and limitations.
-
-## The research question
-
-How does a compiled engine interpret a WAD archive, and which parts of that behavior can be independently reconstructed, explained, and tested?
-
-The analysis target will be a pinned build of [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom). Demonstration assets will come from [Freedoom](https://github.com/freedoom/freedoom) or small original fixtures.
-
-WAD is an established, documented format, and Chocolate Doom is open source. This project is an independent reconstruction and validation exercise. Its contribution will be the investigation trail, implementation, and reproducible evidence—not a claim to have discovered an unknown format.
-
-## Practical applications
-
-- **Legacy data preservation:** inspect and extract supported WAD resources for archival work or migration into another tool. The approach transfers to other formats, but each new format needs its own investigation and implementation.
-- **Interoperability and modding:** expose archive metadata and geometry without requiring the original engine to perform the inspection, and export maps into a standard SVG representation.
-- **Input validation and robustness:** detect documented structural faults before extraction or rendering. This is a bounded file validator, not a general malware detector or a guarantee that the original engine is safe.
-- **Reproducible software investigation:** connect binary observations to independently tested behavior, producing evidence useful for debugging and compatibility engineering.
-
-## What the first release will do
-
-| Planned capability | Purpose |
+| Command | Result |
 | --- | --- |
-| Inspect archive metadata and directory entries | Connect byte-level structure to named resources, commonly called lumps |
-| List lump names, offsets, and sizes | Make the inferred layout inspectable |
-| Validate archive structure | Report truncated data and out-of-bounds references clearly |
-| Extract a selected lump | Verify recovered byte ranges against the original file |
-| Export a classic DOOM-format map to SVG | Turn recovered vertices and lines into a visible result |
+| `inspect FILE [--json]` | Signature, size, directory position, count, compatibility warnings |
+| `list FILE [--json]` | Original indexes, names, raw name hex, offsets, and sizes |
+| `extract FILE --index N --output PATH` | Exact resource bytes at an explicit destination |
+| `map-svg FILE --map-index N --output PATH` | Classic vertices and linedefs rendered as SVG |
 
-The first release will focus on classic DOOM-format archives and map geometry. Editing archives, rendering a complete game, supporting every WAD dialect, and implementing a 3D viewer are outside its initial scope. Format acceptance rules will distinguish legal edge cases from invalid inputs rather than assuming every unusual archive is corrupt.
+Indexes distinguish duplicate resource names and duplicate map markers. Inspection preserves zero-length markers and valid overlapping extents. Structural faults produce explicit errors.
 
-## Investigation workflow
+Extraction and SVG publication refuse existing destinations unless `--overwrite` is supplied, protect source aliases, and publish complete temporary sibling files. Failed reads preserve existing output. Parent directories must exist. Default no-overwrite publication requires filesystem hard-link support and fails explicitly when unavailable.
 
-1. **Pin the target.** Record the engine version or commit, binary SHA-256, architecture, build origin, tool versions, and sample provenance. Keep symbol availability explicit.
-2. **Observe the bytes.** Compare sample archives, annotate candidate fields, and write hypotheses before consulting the format implementation.
-3. **Inspect the executable.** Use Ghidra to locate archive-loading behavior through strings, cross-references, control flow, and data access. Check decompiler output against assembly where the distinction matters.
-4. **Implement the model.** Build an independent Python parser from the observations. Record uncertain behavior instead of silently inventing rules.
-5. **Challenge the model.** Exercise valid files, deliberately malformed fixtures, and legal boundary cases. Compare extraction results with the corresponding source byte ranges.
-6. **Validate against source.** Compare findings with the pinned Chocolate Doom source and external documentation. Record agreements, corrections, and unresolved questions.
+Policy limits default to 100,000 directory entries, 64 MiB per selected resource, and 100,000 vertices/lines each. Controlled overrides use `--max-entries`, `--max-lump-size`, `--max-vertices`, and `--max-lines`; geometry flags apply to `map-svg`. Exit codes are 0 for success, 1 for operational failures, and 2 for argument errors.
 
-Any source code or documentation consulted before a finding will be disclosed. AI-assisted code or notes will be reviewed and verified; they will not be presented as experimental evidence.
+## Evidence behind the result
 
-## Evidence standard
+- **Pinned provenance:** executable and sample hashes, architecture, versions, licenses, and toolchain are recorded in the [manifest](docs/research/target.md).
+- **Archive layout:** sample bytes and loader instructions support the twelve-byte header and sixteen-byte directory stride. Runtime objects have a different size; the report explains that distinction.
+- **Lookup behavior:** a traced backward scan supports later duplicate-name precedence. Source-consultation history and the untraced hash-table construction are disclosed.
+- **Geometry:** assembly shows four-byte vertex reads, signed coordinate expansion, and fourteen-byte linedef input strides. The pinned source corroborates the identifications after the observations were recorded.
+- **Independent validation:** E1M1 in the hashed Freedoom sample decodes to 1,196 vertices and 1,175 lines. Selected records match independent byte inspection; SVG endpoints and line count are checked separately.
+- **Measured efficiency:** 64 KiB directory batching reduced the recorded Freedoom median from 9.655 ms to 2.202 ms against an equivalent single-record reference. The [benchmark](docs/performance.md) includes repetitions, hashes, allocation peaks, and limits.
 
-Each important finding should include:
+The test suite covers malformed input, duplicate names, overlaps, block boundaries, truncation, source aliases, legacy Windows encodings, map boundaries, resource limits, invalid endpoints, and SVG transforms. The [CI workflow](.github/workflows/ci.yml) builds and tests the installed package across six environment combinations.
 
-- A concrete claim and its confidence level.
-- A sample identifier, hash, and relevant byte offsets.
-- The target function or instruction location, tied to the exact binary.
-- A short explanation of the observed data flow.
-- A reproducible experiment or test.
-- A note stating whether the claim is inferred, experimentally verified, or source-confirmed.
+WAD is documented and Chocolate Doom is open source. The contribution is the investigation trail and tested reconstruction, not a claim to have discovered an unknown format. Ghidra is needed to reproduce the binary research, not to run the tool.
 
-For example, an entry-size hypothesis should be supported by annotated archive bytes, the loader's access pattern, and fixtures that distinguish it from competing interpretations. Screenshots will illustrate findings; written evidence and reproducible steps will carry the explanation.
+## Real-world applications
+
+1. **Legacy data preservation:** inspect metadata and recover supported resources for archival or migration workflows.
+2. **Interoperability and modding:** expose archive contents and map geometry independently of the original engine, with SVG as a standard output.
+3. **Compatibility investigation:** distinguish legal edge cases from structural faults and explain differences between loader behavior and inspector policies.
+
+The method transfers to other formats, but each new format needs its own investigation and implementation.
+
+## Supported scope
+
+The [archive policy](docs/format/wad.md) and [map policy](docs/format/maps.md) define acceptance precisely. Map previews require a canonical consecutive classic ten-lump block; selection stops at the next recognized marker. Selected spans containing BEHAVIOR, TEXTMAP, or ZNODES are rejected explicitly.
+
+The preview draws linedef geometry. It does not validate textures, sectors, BSP data, collision, or playability, and dialect checks do not detect every possible extension. A successful preview is not a guarantee that the engine accepts the complete map.
 
 ## Roadmap
 
-See the [implementation plan](docs/superpowers/plans/2026-10-02-wadscope.md) for task checklists, verification gates, Windows PowerShell commands, cost controls, and portfolio deliverables.
+- [x] Publish pinned archive and map investigations with binary evidence.
+- [x] Build inspection, safe extraction, geometry decoding, and SVG export.
+- [x] Publish an original reproducible visual example and passing Windows/Linux CI.
+- [x] Measure directory I/O and production Python allocation peaks.
+- [ ] Compare a real export with an actual engine reference view.
+- [ ] Record the 60–90 second demo and publish a verified v0.1.0 release.
 
-- [x] Define the research question, scope, and repository brief.
-- [x] **Milestone 1 — First evidence:** pin the target and sample; investigate the archive header and directory; publish the first annotated finding.
-- [x] **Milestone 2 — Archive inspector:** implement metadata listing, bounds validation, and selected-lump extraction with focused tests.
-- [ ] **Milestone 3 — Visible reconstruction:** decode classic map vertices and lines; export an SVG and verify it against a reference view.
-- [ ] **Milestone 4 — Reproducible release:** publish installation steps, CLI examples, automated checks, a concise research report, and a 60–90 second demo.
+The [implementation plan](docs/superpowers/plans/2026-10-02-wadscope.md) tracks individual gates. [Portfolio notes](docs/portfolio.md) contain substantiated CV wording and interview explanations.
 
-An optional later milestone is a Ghidra script that automates a specific, validated analysis step. Automation will follow the manual investigation.
+## License and assets
 
-## Planned repository layout
-
-The implemented archive-tool layout is shown below; examples will be added with SVG export:
-
-```text
-src/wadscope/       Independent parser, validation, extraction, and CLI
-tests/             Original fixtures and regression tests
-docs/research/     Hypotheses, experiments, findings, and source comparisons
-docs/format/       Reconstructed format notes with evidence references
-scripts/           Reproduction helpers and optional Ghidra automation
-examples/          Small original samples and generated SVG output
-```
-
-## Tools and prerequisites
-
-- **Python 3:** binary file handling, `struct`, exceptions, and testable functions.
-- **Ghidra:** static analysis, cross-references, function annotation, and decompilation.
-- **A hex viewer:** inspection of actual file contents and offsets.
-- **Git:** versioned code, research notes, and reproducible checkpoints.
-- **Basic C and assembly literacy:** structures, pointers, byte order, and memory access.
-
-Windows is a suitable starting environment. The exact analysis setup and dependency versions will be recorded when the target build is selected. Working installation and usage commands appear below.
-
-## Validation and release criteria
-
-The first release is ready when a reader can reproduce the documented investigation and use the inspector on the supported samples.
-
-- Valid sample archives produce the expected metadata and extracted bytes.
-- Truncated headers, incomplete directories, and out-of-bounds entries produce explicit errors.
-- Legal edge cases, including zero-length entries and repeated names, have documented behavior and tests.
-- Extraction does not turn archive-provided names into unsafe filesystem paths.
-- Resource limits and unsupported formats are documented.
-- The SVG geometry is compared with a reference map view, with known rendering limitations stated.
-- Automated checks run on the declared supported environment.
-- A release includes working commands, sample provenance, actual results, and an honest limitations section.
-
-## Portfolio deliverables
-
-The completed project should let a reviewer understand the result quickly and inspect the reasoning deeply:
-
-1. A short demo showing archive inspection, extraction, and SVG export.
-2. A research report tracing findings from bytes and disassembly to verified behavior.
-3. A usable, tested tool with a reproducible setup.
-4. A discussion of mistakes, corrected hypotheses, and remaining limitations.
-
-Benchmarks, coverage figures, and CV claims will only be published after they have been measured or demonstrated.
-
-## References and asset policy
-
-- [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom): engine analysis target and eventual source-validation reference.
-- [Freedoom](https://github.com/freedoom/freedoom): freely licensed demonstration assets; preserve its copyright notices and license when redistributing content.
-- [Ghidra](https://github.com/NationalSecurityAgency/ghidra): reverse engineering framework.
-
-Commercial game assets and third-party binaries are not included. Any future third-party sample will carry its provenance and applicable license. WADScope's license applies to original repository content; it does not replace upstream licenses. Upstream source excerpts, if needed, will be attributed and handled under their own license terms.
-
-## License
-
-Original WADScope content is released under the [MIT License](LICENSE).
+Original repository content uses the [MIT License](LICENSE). Downloaded executables, game archives, and raw decompilation remain outside Git. [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom) and [Freedoom](https://github.com/freedoom/freedoom) retain their own licenses. The project license does not replace upstream licenses; provenance and redistribution requirements are recorded in the manifest. The committed preview uses original geometry only.

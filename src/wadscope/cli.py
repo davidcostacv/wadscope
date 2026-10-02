@@ -8,6 +8,9 @@ from pathlib import Path
 from . import __version__
 from .archive import WadArchive
 from .extract import extract_lump
+from .maps import load_map
+from .output import publish_chunks
+from .svg import render_svg
 
 
 def _write_text(message: str, *, file=None) -> None:
@@ -45,15 +48,19 @@ def _parser() -> argparse.ArgumentParser:
     parser = _ArgumentParser(prog="wadscope", description="Inspect and extract DOOM WAD archives.")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
-    for command in ("inspect", "list", "extract"):
+    for command in ("inspect", "list", "extract", "map-svg"):
         subparser = commands.add_parser(command)
         subparser.add_argument("file", type=Path)
         subparser.add_argument("--max-entries", type=_positive, default=100_000)
         subparser.add_argument("--max-lump-size", type=_nonnegative, default=64 * 1024 * 1024)
-        if command == "extract":
-            subparser.add_argument("--index", type=_nonnegative, required=True)
+        if command in ("extract", "map-svg"):
+            subparser.add_argument("--index" if command == "extract" else "--map-index",
+                                   type=_nonnegative, required=True)
             subparser.add_argument("--output", type=Path, required=True)
             subparser.add_argument("--overwrite", action="store_true")
+            if command == "map-svg":
+                subparser.add_argument("--max-vertices", type=_positive, default=100_000)
+                subparser.add_argument("--max-lines", type=_positive, default=100_000)
         else:
             subparser.add_argument("--json", action="store_true")
     return parser
@@ -94,9 +101,20 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     for entry in archive.entries:
                         print(f"{entry.index}: {entry.name!r} offset={entry.offset} size={entry.size}")
-            else:
+            elif args.command == "extract":
                 destination = extract_lump(archive, args.index, args.output, overwrite=args.overwrite)
                 _write_text(f"Extracted {archive.entries[args.index].size} bytes to {str(destination)!r}\n")
+            else:
+                geometry = load_map(archive, args.map_index, max_vertices=args.max_vertices,
+                                    max_lines=args.max_lines)
+                svg = render_svg(geometry)
+                # Keep the UTF-8 encoding buffer bounded while publishing the
+                # required text return value; no second full document copy.
+                chunks = (svg[start:start + 16384].encode('utf-8')
+                          for start in range(0, len(svg), 16384))
+                destination = publish_chunks(archive, args.output, chunks, overwrite=args.overwrite)
+                _write_text(f"Rendered {geometry.name}: {len(geometry.vertices)} vertices, "
+                            f"{len(geometry.lines)} linedefs to {str(destination)!r}\n")
     except (OSError, ValueError, IndexError) as error:
         _write_text(f"wadscope: {error}\n", file=sys.stderr)
         return 1
