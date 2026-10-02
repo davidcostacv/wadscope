@@ -76,3 +76,9 @@ The [disk declarations and marker-relative enum](https://github.com/chocolate-do
 The [SHORT conversion](https://github.com/chocolate-doom/chocolate-doom/blob/410d96855b5df5410ff591a90efeafa889119224/src/i_swap.h#L33) is signed, including for vertex indexes. Consequently, retaining unsigned linedef words and rejecting out-of-range endpoint references are explicitly inspector choices. The stricter record-divisibility checks and unsupported-dialect errors likewise belong to WADScope's policy; they were not demonstrated as engine rejection behavior.
 
 **Final status:** Four/fourteen-byte disk records have sample, assembly, and pinned-source support. Canonical names and field labels have pinned-source confirmation following binary observation. The decoder may now implement the [supported policy](../format/maps.md); unsupported formats and gameplay compatibility remain outside this result.
+
+## Decoder validation
+
+The independent Python decoder passed nineteen map-specific tests and the full sixty-test archive/CLI/map suite on Python 3.12.14. The original square fixture includes negative coordinates; tests also cover adjacent duplicate markers, malformed records, invalid endpoints, unsupported dialect markers, and limits checked before payload reads.
+
+On the hashed Freedoom1 sample, selecting marker index 0 returned E1M1 with 1,196 vertices and 1,175 lines. Its first four vertex coordinates and first two complete linedef records matched the independent byte hypotheses above exactly. This checks decoding and selection; it is not an engine execution or reference-view comparison.
