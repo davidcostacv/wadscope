@@ -52,6 +52,8 @@ For example, an entry-size hypothesis should be supported by annotated archive b
 
 ## Roadmap
 
+See the [implementation plan](docs/superpowers/plans/2026-10-02-wadscope.md) for task checklists, verification gates, Windows PowerShell commands, cost controls, and portfolio deliverables.
+
 - [x] Define the research question, scope, and repository brief.
 - [ ] **Milestone 1 — First evidence:** pin the target and sample; investigate the archive header and directory; publish the first annotated finding.
 - [ ] **Milestone 2 — Archive inspector:** implement metadata listing, bounds validation, and selected-lump extraction with focused tests.
