@@ -94,4 +94,3 @@ class ExtractTests(unittest.TestCase):
             with self.assertRaises(OSError):
                 self.extract(self.archive, 0, self.output)
         self.assertEqual(list(self.root.iterdir()), [self.source])
-
