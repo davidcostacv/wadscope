@@ -1,0 +1,32 @@
+# Python environments and generated output
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local credentials and editor files
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# Local analysis targets, assets, and Ghidra projects
+# Publish only deliberately reviewed, licensed samples.
+/local/
+*.wad
+*.WAD
+*.exe
+*.dll
+*.gpr
+*.rep/
