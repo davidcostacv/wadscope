@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wadscope"
+version = "0.1.0.dev0"
+description = "An independent, bounded DOOM WAD archive inspector"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+[project.urls]
+Repository = "https://github.com/davidcostacv/wadscope"
+
+[tool.setuptools.packages.find]
+where = ["src"]
