@@ -1,15 +1,17 @@
 # WADScope
 
+[![CI](https://github.com/davidcostacv/wadscope/actions/workflows/ci.yml/badge.svg)](https://github.com/davidcostacv/wadscope/actions/workflows/ci.yml)
+
 **From raw bytes to playable worlds: investigating DOOM's WAD loader and building an independent archive inspector.**
 
 WADScope is a reverse engineering project with two connected deliverables: an evidence-based study of how a compiled DOOM engine loads WAD files, and a Python tool that implements the recovered behavior. The planned visual output is an SVG floor plan reconstructed from a level's geometry.
 
-> **Status: working archive inspector.** Header/directory research, the parser, CLI, and indexed extraction are implemented. Map decoding, SVG export, cross-platform CI, and the release demo remain pending.
+> **Status: working archive inspector.** Header/directory research, the parser, CLI, and indexed extraction are implemented. Map decoding, SVG export, and the release demo remain pending. Windows/Linux CI passes on Python 3.11, 3.12, and 3.14.
 
 
 ## Try the archive inspector
 
-Python 3.11 or newer is required by the package; local verification uses Python 3.12.14 on Windows. Runtime and tests require no external dependencies, paid API, or LLM tokens. Optional AI assistance can help explain notes; executed tests and binary observations remain the evidence.
+Tested on Windows and Linux with Python 3.11, 3.12, and 3.14. Local measurements use Python 3.12.14 on Windows. Runtime and tests require no external dependencies, paid API, or LLM tokens. Optional AI assistance can help explain notes; executed tests and binary observations remain the evidence.
 
 Run these commands in Windows PowerShell with Python and Git installed:
 
