@@ -57,3 +57,11 @@ Only actual mistakes or environment failures are recorded. Each entry includes a
 **Correction:** Confirm the read offset, buffer, and length in the instructions before documenting behavior.
 
 **Prevention:** Treat inferred signatures as hypotheses. Include instruction addresses whenever arguments affect a format claim.
+
+## Windows redirected streams can use a legacy encoding
+
+**Observed:** Printing a Unicode path to CP1252 output raised UnicodeEncodeError, including after a successful extraction. Argparse also failed while reporting an unknown Unicode command.
+
+**Correction:** Route status, diagnostics, and parser messages through one stream-aware writer. Preserve supported Unicode and escape unsupported characters. Regression tests cover errors, successful publication, argument misuse, and UTF-8 readability.
+
+**Prevention:** Test redirected legacy streams alongside normal UTF-8 output. A filesystem operation and its printed confirmation are separate failure points.

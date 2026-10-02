@@ -1,5 +1,6 @@
 import dataclasses
 import importlib
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,6 +9,20 @@ from tests.fixtures import directory_entry, header, original_wad
 
 
 class ArchiveTests(unittest.TestCase):
+    def test_source_identity_detects_hard_link_and_missing_destination(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "source.wad"
+            alias = Path(directory) / "alias.wad"
+            source.write_bytes(original_wad())
+            os.link(source, alias)
+            with self.api.WadArchive.open(source) as archive:
+                self.assertTrue(hasattr(archive, "is_source"), "source identity API is missing")
+                self.assertTrue(archive.is_source(source))
+                self.assertTrue(archive.is_source(alias))
+                self.assertFalse(archive.is_source(Path(directory) / "missing"))
+            with self.assertRaisesRegex(ValueError, "closed"):
+                archive.is_source(source)
+
     def setUp(self):
         try:
             self.api = importlib.import_module("wadscope.archive")

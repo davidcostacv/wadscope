@@ -4,7 +4,44 @@
 
 WADScope is a reverse engineering project with two connected deliverables: an evidence-based study of how a compiled DOOM engine loads WAD files, and a Python tool that implements the recovered behavior. The planned visual output is an SVG floor plan reconstructed from a level's geometry.
 
-> **Status: research setup started.** The project brief, roadmap, and [target/environment baseline](docs/research/target.md) are available. The target and sample have been downloaded and hashed. The parser, CLI, SVG exporter, automated tests, and binary analysis report have not been implemented yet.
+> **Status: working archive inspector.** Header/directory research, the parser, CLI, and indexed extraction are implemented. Map decoding, SVG export, cross-platform CI, and the release demo remain pending.
+
+
+## Try the archive inspector
+
+Python 3.11 or newer is required by the package; local verification uses Python 3.12.14 on Windows. Runtime and tests require no external dependencies, paid API, or LLM tokens. Optional AI assistance can help explain notes; executed tests and binary observations remain the evidence.
+
+Run these commands in Windows PowerShell with Python and Git installed:
+
+```powershell
+git clone https://github.com/davidcostacv/wadscope.git
+Set-Location .\wadscope
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m wadscope --help
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Create a tiny original sample without downloading game content:
+
+```powershell
+.\.venv\Scripts\python.exe -c "from pathlib import Path; from tests.fixtures import original_wad; Path('local').mkdir(exist_ok=True); Path('local/example.wad').write_bytes(original_wad())"
+.\.venv\Scripts\python.exe -m wadscope inspect .\local\example.wad --json
+.\.venv\Scripts\python.exe -m wadscope list .\local\example.wad --json
+.\.venv\Scripts\python.exe -m wadscope extract .\local\example.wad --index 1 --output .\local\resource.bin
+```
+
+Inspection returns:
+
+```json
+{"signature": "PWAD", "file_size": 70, "directory_offset": 18, "entry_count": 3, "warnings": []}
+```
+
+Entry 1 extracts the four bytes `CDEF`. Indexes distinguish repeated names. Extraction requires an explicit destination and an existing parent directory; archive names never become output paths. Existing files require `--overwrite`, and source aliases are refused. Failed reads preserve existing destinations. Default no-overwrite publication requires filesystem hard-link support and fails explicitly when unavailable.
+
+Policy limits default to 100,000 entries and 64 MiB per selected resource; override with `--max-entries` and `--max-lump-size`. Exit codes are 0 for success, 1 for operational failures, and 2 for argument errors. Directory reads are batched and extraction streams bounded chunks.
+
+[Research findings](docs/research/findings.md), [reproduction walkthrough](docs/research/walkthrough.md), [format policy](docs/format/wad.md), and [measured performance](docs/performance.md) document actual results and limitations.
 
 ## The research question
 
@@ -62,8 +99,8 @@ For example, an entry-size hypothesis should be supported by annotated archive b
 See the [implementation plan](docs/superpowers/plans/2026-10-02-wadscope.md) for task checklists, verification gates, Windows PowerShell commands, cost controls, and portfolio deliverables.
 
 - [x] Define the research question, scope, and repository brief.
-- [ ] **Milestone 1 — First evidence:** pin the target and sample; investigate the archive header and directory; publish the first annotated finding.
-- [ ] **Milestone 2 — Archive inspector:** implement metadata listing, bounds validation, and selected-lump extraction with focused tests.
+- [x] **Milestone 1 — First evidence:** pin the target and sample; investigate the archive header and directory; publish the first annotated finding.
+- [x] **Milestone 2 — Archive inspector:** implement metadata listing, bounds validation, and selected-lump extraction with focused tests.
 - [ ] **Milestone 3 — Visible reconstruction:** decode classic map vertices and lines; export an SVG and verify it against a reference view.
 - [ ] **Milestone 4 — Reproducible release:** publish installation steps, CLI examples, automated checks, a concise research report, and a 60–90 second demo.
 
@@ -71,7 +108,7 @@ An optional later milestone is a Ghidra script that automates a specific, valida
 
 ## Planned repository layout
 
-The following layout is a design target; these directories do not exist yet:
+The implemented archive-tool layout is shown below; examples will be added with SVG export:
 
 ```text
 src/wadscope/       Independent parser, validation, extraction, and CLI
@@ -90,7 +127,7 @@ examples/          Small original samples and generated SVG output
 - **Git:** versioned code, research notes, and reproducible checkpoints.
 - **Basic C and assembly literacy:** structures, pointers, byte order, and memory access.
 
-Windows is a suitable starting environment. The exact analysis setup and dependency versions will be recorded when the target build is selected. Installation and usage commands will be added once a working tool exists.
+Windows is a suitable starting environment. The exact analysis setup and dependency versions will be recorded when the target build is selected. Working installation and usage commands appear below.
 
 ## Validation and release criteria
 

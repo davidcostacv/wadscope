@@ -10,6 +10,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 
+[project.scripts]
+wadscope = "wadscope.cli:main"
+
 [project.urls]
 Repository = "https://github.com/davidcostacv/wadscope"
 

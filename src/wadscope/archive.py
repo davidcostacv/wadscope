@@ -97,6 +97,16 @@ class WadArchive:
     def closed(self) -> bool:
         return self._stream.closed
 
+    def is_source(self, path: str | os.PathLike[str]) -> bool:
+        """Identify existing output aliases without exposing the owned handle."""
+        if self.closed:
+            raise ValueError("archive is closed")
+        try:
+            candidate = os.stat(path)
+        except FileNotFoundError:
+            return False
+        return os.path.samestat(candidate, os.fstat(self._stream.fileno()))
+
     def _selected_entry(self, index: int) -> WadEntry:
         if self.closed:
             raise ValueError("archive is closed")
