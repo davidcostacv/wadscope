@@ -33,3 +33,27 @@ Only actual mistakes or environment failures are recorded. Each entry includes a
 **Correction:** Read the tagged setup documentation before selecting dependencies.
 
 **Prevention:** Record both the software release and its documentation ref. Do not apply requirements from a development branch to a released binary.
+
+## A direct Ghidra JVM launch needs its configured classloader
+
+**Observed:** A direct Java invocation failed before import with `Ghidra class loader not in use`.
+
+**Correction:** Inspect the pinned `support/launch.properties` and include its required `-Djava.system.class.loader=ghidra.GhidraClassLoader` argument. The runner now includes it explicitly.
+
+**Prevention:** Read the installed launch configuration before replacing a wrapper with a direct JVM command.
+
+## A failed Java compilation can leave a stale Ghidra bundle
+
+**Observed:** The sandbox denied a JAR realpath lookup while compiling the exporter. Ghidra left current compiled classes without a generated OSGi manifest. A retry outside the sandbox reused that incomplete cache and could not load the script.
+
+**Correction:** Use new per-run Ghidra settings directories. The third run exported all twenty selected candidates successfully; no old evidence or cache was deleted.
+
+**Prevention:** Preserve failed logs, isolate subsequent settings, and verify `run.tsv` and its executable hash. Ghidra returned exit code zero even when the first export failed, so exit status alone is insufficient.
+
+## Inferred reader arguments can disappear in decompiled C
+
+**Observed:** The loader's decompilation displayed the file reader without several arguments that were plainly passed in registers in the assembly.
+
+**Correction:** Confirm the read offset, buffer, and length in the instructions before documenting behavior.
+
+**Prevention:** Treat inferred signatures as hypotheses. Include instruction addresses whenever arguments affect a format claim.

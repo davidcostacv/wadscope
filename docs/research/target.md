@@ -1,6 +1,6 @@
 # Research target and environment baseline
 
-Recorded on 2026-10-02. This is a provenance record, not a completed reverse engineering report. The executable has not yet been run or imported into Ghidra.
+Recorded on 2026-10-02. This is a provenance record, not a completed reverse engineering report. The executable has been imported and statically analyzed in Ghidra; it has not been executed as a game. Initial findings are recorded in [findings.md](findings.md).
 
 ## Selected engine
 
@@ -41,10 +41,20 @@ Recorded on 2026-10-02. This is a provenance record, not a completed reverse eng
 | Bundled Python | 3.12.14; executable confirmed runnable through its absolute path |
 | Java on PATH | Oracle Java 1.8.0_431, 32-bit client VM |
 | Ghidra | Not found in the top-level folders checked; this is not an exhaustive disk inventory |
-| Selected Ghidra release | 12.1.4; not downloaded or run yet |
+| Selected Ghidra release | 12.1.4; downloaded, hashed, and run headlessly |
 | Pinned Ghidra prerequisite | JDK 21, 64-bit, per the tagged README |
+| Portable JDK actually used | Temurin 21.0.12.1+1, 64-bit, verified with `java -version` |
 
-The checked folders were Downloads, Documents, Program Files, and the Projects workspace. The current Java is insufficient for the selected Ghidra release. Use an isolated portable JDK and Ghidra under ignored `local/tools/` rather than replacing system Java. Obtain them from the official vendors and record their hashes and verified versions before analysis.
+The checked folders were Downloads, Documents, Program Files, and the Projects workspace. The system Java is insufficient for the selected Ghidra release. Portable tools were extracted under ignored `local/tools/`; system Java and PATH were not modified.
+
+### Pinned tool archives
+
+| Tool | Release archive | SHA-256 |
+| --- | --- | --- |
+| Ghidra 12.1.4 | `ghidra_12.1.4_PUBLIC_20260921.zip` | `ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db` |
+| Temurin JDK 21.0.12.1+1 | `OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip` | `f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e` |
+
+Both local hashes matched their release API asset digests. Sources: [Ghidra release](https://github.com/NationalSecurityAgency/ghidra/releases/tag/Ghidra_12.1.4_build), [Temurin release](https://github.com/adoptium/temurin21-binaries/releases/tag/jdk-21.0.12.1%2B1), and [Ghidra's tagged prerequisites](https://github.com/NationalSecurityAgency/ghidra/blob/Ghidra_12.1.4_build/README.md).
 
 The bundled interpreter used in this environment is:
 
@@ -78,8 +88,31 @@ The actual setup used `gh release download` for downloading these same URLs, Pow
 
 ## Prior knowledge and source consultation
 
-Before experimentation, the project proposal already described WAD headers, directories, named lumps, offsets, sizes, and map vertices/lines. Therefore the investigation is not blind. Release metadata, upstream licenses, and Ghidra setup documentation were consulted during setup. No Chocolate Doom loader implementation has been consulted as part of this baseline. No hypothesis about engine loading behavior is marked verified here.
+Before experimentation, the project proposal already described WAD headers, directories, named lumps, offsets, sizes, and map vertices/lines. Therefore the investigation is not blind. Release metadata, upstream licenses, and Ghidra setup documentation were consulted during setup. After byte observations and the first successful candidate-function export, `src/w_wad.c` at `chocolate-doom-3.1.1` was consulted to validate the header/directory interpretations. Its Git blob is `1b091834f79daba4a1642c3cd7c18a9382db78d5`. The later targeted name-lookup export therefore follows source consultation; do not present its interpretation as a blind discovery.
 
-## Next research gate
+## Toolchain and analysis reproduction
 
-Prepare the pinned Ghidra toolchain, inspect sample bytes, write competing header/directory hypotheses, and import the exact executable. Publish function addresses and experiments before claiming binary-analysis findings or starting the production parser.
+Download the pinned tool ZIPs into `local/downloads`, compare their hashes above, and extract them into `local/tools`. For a fresh checkout, these PowerShell commands obtain the exact releases:
+
+```powershell
+Invoke-WebRequest -Uri 'https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip' -OutFile '.\local\downloads\ghidra_12.1.4_PUBLIC_20260921.zip'
+Invoke-WebRequest -Uri 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip' -OutFile '.\local\downloads\OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip'
+Get-FileHash -LiteralPath '.\local\downloads\ghidra_12.1.4_PUBLIC_20260921.zip', '.\local\downloads\OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip' -Algorithm SHA256
+```
+
+After verifying those hashes:
+
+```powershell
+Expand-Archive -LiteralPath '.\local\downloads\ghidra_12.1.4_PUBLIC_20260921.zip' -DestinationPath '.\local\tools'
+Expand-Archive -LiteralPath '.\local\downloads\OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip' -DestinationPath '.\local\tools'
+& '.\scripts\run_ghidra_analysis.ps1' -Mode Import -EvidenceName 'first-import'
+& '.\scripts\run_ghidra_analysis.ps1' -Mode Refresh -EvidenceName 'lookup-export' -FunctionAddress @('140023440', '140023ab0')
+```
+
+Use fresh extraction destinations, or skip extraction for already verified installations. The runner gives each export new settings to avoid incomplete OSGi bundle caches, validates the target hash, and checks a newly produced manifest rather than trusting Ghidra's exit code alone. It refuses to overwrite an evidence directory. Windows execution policy may require a process-scoped exception to run a reviewed local script; no global policy changes are required.
+
+Actual initial import: language `x86:LE:64:default`, compiler spec `windows`, default analyzers, maximum two CPUs, 180-second per-file timeout. Ghidra reported analysis success in 39 seconds. The MinGW pseudo-relocation analyzer reported a missing list, and the Windows resource-reference analyzer failed to compile its script in the sandbox. These are limitations of that initial analysis, not evidence that every analyzer completed. Exports `ghidra-run-3` and `ghidra-run-4` completed outside the sandbox using the saved project, with all 20 selected functions decompiled in each run. Full project and generated decompiler output remain local.
+
+## Current research gate
+
+Header and directory layout now have byte, assembly, and source cross-checks. The [format notes](../format/wad.md) define an initial inspector acceptance policy. Name lookup has a checked binary fallback branch and a source-confirmed hash-table description; the hash-table builder has not yet been independently traced. None of these claims is a dynamic gameplay experiment.
